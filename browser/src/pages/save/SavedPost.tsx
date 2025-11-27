@@ -108,3 +108,54 @@ const Post = ({ post, postIndex }) => (
 );
 Post.propTypes = { post: PropTypes.any, postIndex: PropTypes.number };
 
+// --- INFINITE POSTS LAYOUT COMPONENT (From previous file) ---
+
+function InfinitePostsLayout({ linkUrl, apiQueryKey, forSaved = false, enabled = true }) {
+    // useSearchParamsMock is now the mock for useSearchParams
+    const [searchParams, setSearchParams] = useSearchParamsMock(); 
+    
+    // For saved posts, we often ignore sortBy/duration, but we read them from URL if present
+    const sortBy = searchParams.get("sortBy") || "new"; 
+    const duration = searchParams.get("duration") || "alltime";
+
+    const { data, isFetching, hasNextPage, fetchNextPage, refetch } = useInfiniteQuery({
+        queryKey: ["posts", apiQueryKey, sortBy, duration],
+        queryFn: async ({ pageParam = 0 }) => {
+            // Mock API call using stubbed axios
+            return await axios
+                .get(`/api/${linkUrl}?limit=${20}&offset=${pageParam * 20}&sortby=${sortBy}&duration=${duration}&linkUrl=${linkUrl}`)
+                .then((data) => data.data);
+        },
+        enabled: enabled,
+        getNextPageParam: (lastPage, pages) => {
+            if (lastPage.length < 20) return undefined;
+            return pages.length;
+        },
+        initialPageParam: 0,
+    });
+    
+    // For general feeds, trigger refetch when filters change. For saved, we might only care about refetching on mount.
+    useEffect(() => {
+        if (!forSaved) {
+            refetch();
+        }
+    }, [sortBy, duration, refetch, forSaved]);
+
+    // Infinite Scrolling Logic
+    useEffect(() => {
+        const onScroll = () => {
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+            
+            if (scrollHeight - scrollTop <= clientHeight * 2 && hasNextPage && !isFetching) {
+                console.log("Fetching next page...");
+                fetchNextPage();
+            }
+        };
+        
+        window.addEventListener("scroll", onScroll);
+        
+        return () => {
+            window.removeEventListener("scroll", onScroll);
+        };
+    }, [fetchNextPage, isFetching, hasNextPage]);
+
