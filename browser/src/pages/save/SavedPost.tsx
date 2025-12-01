@@ -159,3 +159,170 @@ function InfinitePostsLayout({ linkUrl, apiQueryKey, forSaved = false, enabled =
         };
     }, [fetchNextPage, isFetching, hasNextPage]);
 
+    // Handlers for filter changes (only visible/useful for non-saved feeds)
+    function handleDurationChange(newDuration) {
+        const newParams = searchParams.set("duration", newDuration);
+        setSearchParams(newParams, { replace: true });
+    }
+
+    function handleSortByChange(newSortBy) {
+        const newParams = searchParams.set("sortBy", newSortBy);
+        setSearchParams(newParams, { replace: true });
+    }
+
+    const isLoadingInitial = isFetching && data?.pages.length === 0;
+
+    return (
+        <div
+            id="main-content"
+            className="flex w-full flex-col flex-1 p-2 space-y-4 rounded-lg bg-gray-50 md:bg-white md:m-3 max-w-2xl mx-auto">
+            
+            {/* Filtering Header (Hidden for Saved Posts as requested) */}
+            {!forSaved && (
+                <header className="flex justify-between items-center p-3 bg-white rounded-xl shadow-md border border-gray-100">
+                    {/* ... (Mobile and Desktop controls omitted for brevity, but exist in the logic) ... */}
+                    <div className="flex space-x-4 md:hidden text-sm">
+                        {/* Mobile Sort */}
+                        <div className="flex items-center space-x-2">
+                            <span>Sort by</span>
+                            <select
+                                name="sort"
+                                id="sort-mobile"
+                                className="p-1.5 px-3 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                                onChange={(e) => handleSortByChange(e.target.value)}
+                                value={sortBy}>
+                                <option value="top">Top</option>
+                                <option value="hot">Hot</option>
+                                <option value="new">New</option>
+                            </select>
+                        </div>
+                        {/* Mobile Duration */}
+                        <div className="flex items-center space-x-2">
+                            <span>Of</span>
+                            <select
+                                name="duration"
+                                id="duration-mobile"
+                                className="p-1.5 px-3 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                                onChange={(e) => handleDurationChange(e.target.value)}
+                                value={duration}>
+                                <option value="day">Day</option>
+                                <option value="week">Week</option>
+                                <option value="month">Month</option>
+                                <option value="year">Year</option>
+                                <option value="alltime">All Time</option>
+                            </select>
+                        </div>
+                    </div>
+                    {/* Desktop Duration Tabs */}
+                    <ul className="hidden space-x-2 list-none md:flex">
+                        {['day', 'week', 'month', 'alltime'].map(d => (
+                            <li
+                                key={d}
+                                className={`p-2 rounded-md px-4 text-sm font-medium cursor-pointer transition-colors duration-150 ${duration === d ? "bg-blue-100 text-blue-700" : "hover:bg-gray-100 text-gray-700"
+                                }`}
+                                onClick={() => handleDurationChange(d)}>
+                                {d === 'alltime' ? 'All Time' : d.charAt(0).toUpperCase() + d.slice(1)}
+                            </li>
+                        ))}
+                    </ul>
+                    {/* Desktop SortBy Tabs */}
+                    <ul className="hidden mr-5 space-x-2 list-none md:flex">
+                        {['hot', 'new', 'top'].map(s => (
+                            <li
+                                key={s}
+                                className={`p-2 rounded-md px-4 text-sm font-medium cursor-pointer transition-colors duration-150 ${sortBy === s ? "bg-orange-100 text-orange-700" : "hover:bg-gray-100 text-gray-700"
+                                }`}
+                                onClick={() => handleSortByChange(s)}>
+                                {s.charAt(0).toUpperCase() + s.slice(1)}
+                            </li>
+                        ))}
+                    </ul>
+                </header>
+            )}
+
+            {/* Loading Indicator */}
+            {isLoadingInitial && <Loader forPosts={true} />}
+
+            {/* No Posts Found Message */}
+            {!isLoadingInitial && data?.pages[0]?.length === 0 ? (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+                    <p className="p-5 bg-white rounded-xl border-2 border-dashed border-gray-300 text-center text-gray-600">
+                        No saved posts found. Go save some!
+                    </p>
+                </motion.div>
+            ) : (
+                // Posts List
+                <div className="flex flex-col space-y-3">
+                    {data?.pages.map((pageData, index) => (
+                        <ul className="flex flex-col space-y-3" key={index}>
+                            <AnimatePresence initial={index === 0}>
+                                {pageData?.map((post, postIndex) => (
+                                    <Post post={post} key={post.post_info.id} postIndex={postIndex} />
+                                ))}
+                            </AnimatePresence>
+                        </ul>
+                    ))}
+                </div>
+            )}
+            
+            {/* Fetching Next Page Indicator */}
+            {hasNextPage && isFetching && (
+                <div className="py-4 text-center text-blue-500 font-medium">
+                    Loading more saved items...
+                </div>
+            )}
+
+            {/* End of Content Indicator */}
+            {!hasNextPage && data?.pages[0]?.length > 0 && (
+                <div className="py-4 text-center text-gray-400 text-sm">
+                    — End of saved posts —
+                </div>
+            )}
+        </div>
+    );
+}
+
+
+// --- SAVED POSTS COMPONENT (Requested File) ---
+
+function SavedPosts() {
+    // Title management logic from the user's request
+    useEffect(() => {
+        document.title = "Threaddit | saved";
+        return () => {
+            document.title = "Threaddit";
+        };
+    }, [])
+
+    return (
+        <div className="flex flex-col items-center p-2 w-full">
+            <h2 className="text-3xl font-bold text-gray-800 mb-6 w-full max-w-2xl mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-8 h-8 inline-block text-blue-500 mr-2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.5 10.5V13h-3.951l-4.73 4.73A6 6 0 115 10a6 6 0 0110.5-3.5L17.5 10.5z" />
+                </svg>
+                Saved Posts
+            </h2>
+            {/* Renders the InfinitePostsLayout configured for saved posts */}
+            <InfinitePostsLayout 
+                apiQueryKey="saved" 
+                linkUrl={`posts/saved`} 
+                forSaved={true} 
+            />
+        </div>
+    );
+}
+
+
+// --- APP WRAPPER (Main Export) ---
+// Required to provide the QueryClient context.
+const queryClient = new QueryClient();
+
+export default function App() {
+    return (
+        <QueryClientProvider client={queryClient}>
+            <div className="min-h-screen bg-gray-100 p-4">
+                <SavedPosts />
+            </div>
+        </QueryClientProvider>
+    );
+}
