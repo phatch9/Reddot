@@ -13,7 +13,7 @@ CREATE TABLE public.comments (
 CREATE TABLE public.posts (
     id integer NOT NULL,
     user_id integer NOT NULL,
-    subthread_id integer NOT NULL,
+    subpost_id integer NOT NULL,
     title text NOT NULL,
     media text,
     content text,
@@ -98,7 +98,7 @@ CREATE SEQUENCE public.messages_id_seq
 
 ALTER SEQUENCE public.messages_id_seq OWNED BY public.messages.id;
 
-CREATE TABLE public.subthreads (
+CREATE TABLE public.subposts (
     id integer NOT NULL,
     name character varying(20) NOT NULL,
     description text,
@@ -108,9 +108,9 @@ CREATE TABLE public.subthreads (
 );
 
 CREATE VIEW public.post_info AS
-    SELECT t.id AS thread_id,
-    t.name AS thread_name,
-    t.logo AS thread_logo,
+    SELECT t.id AS post_id,
+    t.name AS post_name,
+    t.logo AS post_logo,
     p.id AS post_id,
     k.karma AS post_karma,
     p.title,
@@ -139,7 +139,7 @@ CREATE VIEW public.post_info AS
         FROM (public.posts p_1
         FULL JOIN public.comments c_1 ON ((c_1.post_id = p_1.id)))
         GROUP BY p_1.id) c ON ((c.post_id = p.id)))
-    JOIN public.subthreads t ON ((t.id = p.subthread_id)))
+    JOIN public.subposts t ON ((t.id = p.subpost_id)))
     JOIN public.users u ON ((u.id = p.user_id)));
 
 CREATE SEQUENCE public.posts_id_seq
@@ -198,7 +198,7 @@ ALTER SEQUENCE public.saved_id_seq OWNED BY public.saved.id;
 CREATE TABLE public.subscriptions (
     id integer NOT NULL,
     user_id integer  NOT NULL,
-    subthread_id integer  NOT NULL,
+    subpost_id integer  NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -212,32 +212,32 @@ CREATE SEQUENCE public.subscriptions_id_seq
 
 ALTER SEQUENCE public.subscriptions_id_seq OWNED BY public.subscriptions.id;
 
-CREATE VIEW public.subthread_info AS
-SELECT subthreads.id,
-    subthreads.name,
-    subthreads.logo,
+CREATE VIEW public.subpost_info AS
+SELECT subposts.id,
+    subposts.name,
+    subposts.logo,
     mcount.members_count,
     pcount.posts_count,
     ccount.comments_count
-FROM (((public.subthreads
-    FULL JOIN ( SELECT subthreads_1.id AS subthread_id,
+FROM (((public.subposts
+    FULL JOIN ( SELECT subposts_1.id AS subpost_id,
             count(*) AS members_count
-        FROM (public.subthreads subthreads_1
-            JOIN public.subscriptions ON ((subscriptions.subthread_id = subthreads_1.id)))
-        GROUP BY subthreads_1.id) mcount ON ((mcount.subthread_id = subthreads.id)))
-    FULL JOIN ( SELECT subthreads_1.id AS subthread_id,
+        FROM (public.subposts subposts_1
+            JOIN public.subscriptions ON ((subscriptions.subpost_id = subposts_1.id)))
+        GROUP BY subposts_1.id) mcount ON ((mcount.subpost_id = subposts.id)))
+    FULL JOIN ( SELECT subposts_1.id AS subpost_id,
             count(*) AS posts_count
-        FROM (public.subthreads subthreads_1
-            JOIN public.posts ON ((posts.subthread_id = subthreads_1.id)))
-        GROUP BY subthreads_1.id) pcount ON ((pcount.subthread_id = subthreads.id)))
-    FULL JOIN ( SELECT subthreads_1.id AS subthread_id,
+        FROM (public.subposts subposts_1
+            JOIN public.posts ON ((posts.subpost_id = subposts_1.id)))
+        GROUP BY subposts_1.id) pcount ON ((pcount.subpost_id = subposts.id)))
+    FULL JOIN ( SELECT subposts_1.id AS subpost_id,
             count(*) AS comments_count
-        FROM ((public.subthreads subthreads_1
-            JOIN public.posts ON ((posts.subthread_id = subthreads_1.id)))
+        FROM ((public.subposts subposts_1
+            JOIN public.posts ON ((posts.subpost_id = subposts_1.id)))
             JOIN public.comments ON ((comments.post_id = posts.id)))
-        GROUP BY subthreads_1.id) ccount ON ((ccount.subthread_id = subthreads.id)));
+        GROUP BY subposts_1.id) ccount ON ((ccount.subpost_id = subposts.id)));
 
-CREATE SEQUENCE public.subthreads_id_seq
+CREATE SEQUENCE public.subposts_id_seq
     AS integer
     START WITH 1
     INCREMENT BY 1
@@ -245,7 +245,7 @@ CREATE SEQUENCE public.subthreads_id_seq
     NO MAXVALUE
     CACHE 1;
 
-ALTER SEQUENCE public.subthreads_id_seq OWNED BY public.subthreads.id;
+ALTER SEQUENCE public.subposts_id_seq OWNED BY public.subposts.id;
 
 CREATE VIEW public.user_info AS
  SELECT u.id AS user_id,
@@ -284,7 +284,7 @@ CREATE TABLE public.user_roles (
     id integer NOT NULL,
     user_id integer NOT NULL,
     role_id integer NOT NULL,
-    subthread_id integer,
+    subpost_id integer,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -322,7 +322,7 @@ ALTER TABLE ONLY public.saved ALTER COLUMN id SET DEFAULT nextval('public.saved_
 
 ALTER TABLE ONLY public.subscriptions ALTER COLUMN id SET DEFAULT nextval('public.subscriptions_id_seq'::regclass);
 
-ALTER TABLE ONLY public.subthreads ALTER COLUMN id SET DEFAULT nextval('public.subthreads_id_seq'::regclass);
+ALTER TABLE ONLY public.subposts ALTER COLUMN id SET DEFAULT nextval('public.subposts_id_seq'::regclass);
 
 ALTER TABLE ONLY public.user_roles ALTER COLUMN id SET DEFAULT nextval('public.user_roles_id_seq'::regclass);
 
@@ -365,19 +365,19 @@ ALTER TABLE ONLY public.subscriptions
     ADD CONSTRAINT subscriptions_pkey PRIMARY KEY (id);
     
 ALTER TABLE ONLY public.subscriptions
-    ADD CONSTRAINT subscriptions_user_id_subthread_id_key UNIQUE (user_id, subthread_id);
+    ADD CONSTRAINT subscriptions_user_id_subpost_id_key UNIQUE (user_id, subpost_id);
 
-ALTER TABLE ONLY public.subthreads
-    ADD CONSTRAINT subthreads_name_key UNIQUE (name);
+ALTER TABLE ONLY public.subposts
+    ADD CONSTRAINT subposts_name_key UNIQUE (name);
 
-ALTER TABLE ONLY public.subthreads
-    ADD CONSTRAINT subthreads_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.subposts
+    ADD CONSTRAINT subposts_pkey PRIMARY KEY (id);
 
 ALTER TABLE ONLY public.user_roles
     ADD CONSTRAINT user_roles_pkey PRIMARY KEY (id);
 
 ALTER TABLE ONLY public.user_roles
-    ADD CONSTRAINT user_roles_user_id_role_id_subthread_id_key UNIQUE (user_id, role_id, subthread_id);
+    ADD CONSTRAINT user_roles_user_id_role_id_subpost_id_key UNIQUE (user_id, role_id, subpost_id);
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_email_key UNIQUE (email);
@@ -404,7 +404,7 @@ ALTER TABLE ONLY public.messages
     ADD CONSTRAINT messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT VALID;
 
 ALTER TABLE ONLY public.posts
-    ADD CONSTRAINT posts_subthread_id_fkey FOREIGN KEY (subthread_id) REFERENCES public.subthreads(id) ON UPDATE CASCADE ON DELETE CASCADE NOT VALID;
+    ADD CONSTRAINT posts_subpost_id_fkey FOREIGN KEY (subpost_id) REFERENCES public.subposts(id) ON UPDATE CASCADE ON DELETE CASCADE NOT VALID;
 
 ALTER TABLE ONLY public.posts
     ADD CONSTRAINT posts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT VALID;
@@ -425,23 +425,23 @@ ALTER TABLE ONLY public.saved
     ADD CONSTRAINT saved_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT VALID;
 
 ALTER TABLE ONLY public.subscriptions
-    ADD CONSTRAINT subscriptions_subthread_id_fkey FOREIGN KEY (subthread_id) REFERENCES public.subthreads(id) ON UPDATE CASCADE ON DELETE CASCADE NOT VALID;
+    ADD CONSTRAINT subscriptions_subpost_id_fkey FOREIGN KEY (subpost_id) REFERENCES public.subposts(id) ON UPDATE CASCADE ON DELETE CASCADE NOT VALID;
 
 ALTER TABLE ONLY public.subscriptions
     ADD CONSTRAINT subscriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT VALID;
     
-ALTER TABLE ONLY public.subthreads
-    ADD CONSTRAINT subthreads_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL NOT VALID;
+ALTER TABLE ONLY public.subposts
+    ADD CONSTRAINT subposts_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL NOT VALID;
 
 ALTER TABLE ONLY public.user_roles
     ADD CONSTRAINT user_roles_role_id_fkey FOREIGN KEY (role_id) REFERENCES public.roles(id) ON UPDATE CASCADE ON DELETE CASCADE NOT VALID;
 
 ALTER TABLE ONLY public.user_roles
-    ADD CONSTRAINT user_roles_subthread_id_fkey FOREIGN KEY (subthread_id) REFERENCES public.subthreads(id) ON UPDATE CASCADE ON DELETE CASCADE NOT VALID;
+    ADD CONSTRAINT user_roles_subpost_id_fkey FOREIGN KEY (subpost_id) REFERENCES public.subposts(id) ON UPDATE CASCADE ON DELETE CASCADE NOT VALID;
 
 ALTER TABLE ONLY public.user_roles
     ADD CONSTRAINT user_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT VALID;
 
 INSERT INTO roles(name, slug) VALUES 
-	('Thread Moderator','mod'),
+	('post Moderator','mod'),
 	('Administrator', 'admin');
