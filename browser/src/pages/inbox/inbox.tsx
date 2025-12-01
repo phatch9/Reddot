@@ -101,3 +101,136 @@ export function Inbox() {
   );
 }
 
+Chat.propTypes = {
+  sender: PropTypes.shape({
+    avatar: PropTypes.string,
+    name: PropTypes.string,
+    username: PropTypes.string,
+  }),
+  setCurChat: PropTypes.func,
+  newChat: PropTypes.bool,
+};
+export function Chat({ sender, setCurChat, newChat = false }) {
+  const myRef = useRef(null);
+  const queryClient = useQueryClient();
+  const { user } = AuthConsumer();
+  const [message, setMessage] = useState("");
+  const { data, isFetching } = useQuery({
+    queryKey: ["chat", sender.username],
+    queryFn: async () => {
+      return await axios.get(`/api/messages/all/${sender.username}`).then((res) => res.data);
+    },
+    enabled: sender.username !== undefined,
+  });
+  const { mutate } = useMutation({
+    mutationFn: async (params) => {
+      return await axios
+        .post("/api/messages", { content: params.message, receiver: params.sender.username })
+        .then((res) => res.data);
+    },
+    onSuccess: (data) => {
+      setMessage("");
+      queryClient.setQueryData(["chat", sender.username], (oldData) => {
+        return [...oldData, data];
+      });
+      queryClient.setQueryData(["inbox"], (oldData) => {
+        return oldData.map((m) =>
+          m.sender === sender
+            ? { ...m, content: data.content, created_at: data.created_a, message_id: data.message_id }
+            : m
+        );
+      });
+    },
+  });
+  useEffect(() => {
+    myRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [isFetching]);
+  const animateWhen = data?.length - 10;
+  const AnimateChat = {
+    hidden: {
+      opacity: 0,
+      x: 10,
+    },
+    visible: {
+      opacity: 1,
+      x: 0,
+    },
+  };
+  return (
+    <motion.div
+      className={`flex flex-col justify-between w-full ${newChat && "bg-white w-10/12 md:w-1/2"}`}
+      variants={AnimateChat}
+      initial="hidden"
+      animate="visible"
+      transition={{ duration: 0.25 }}
+      exit={{ opacity: 0, x: 10, transition: { duration: 0.1 } }}>
+      <div className="flex justify-between items-center p-3 mx-2 border-b-2">
+        <div className="flex items-center space-x-4">
+          <img src={sender.avatar || avatar} alt="" className="object-cover w-14 h-14 rounded-full" />
+          <Link to={`/u/${sender.username}`} className="text-xl font-semibold text-blue-500">
+            {sender.username}
+          </Link>
+        </div>
+        <button
+          onClick={() => setCurChat(false)}
+          className="justify-self-end p-2 ml-auto text-white bg-blue-600 rounded-md">
+          Close
+        </button>
+      </div>
+      {isFetching ? (
+        <div className={`${newChat ? "h-[20vh]" : "md:h-[61vh] h-[70vh]"} flex justify-center items-center`}>
+          <Loader forPosts={true} />
+        </div>
+      ) : (
+        <ul className="p-3 space-y-3 rounded-md overflow-auto md:h-[61vh] h-[70vh]">
+          {data?.map((message, index) => (
+            <Message
+              message={message}
+              messageIndex={index < animateWhen ? 0 : index - animateWhen}
+              toUser={message.sender.username == user.username}
+              key={message.message_id}
+            />
+          ))}
+          <li className="invisible" key={"scrollToElement"} ref={myRef}></li>
+        </ul>
+      )}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          mutate({ message, sender });
+        }}
+        className="flex justify-between items-center p-4 w-full bg-blue-200">
+        <input
+          type="text"
+          className="p-2 px-4 mx-3 w-full font-medium rounded-full focus:outline-none"
+          placeholder="Type a message"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+        />
+        <Svg onClick={() => mutate({ message, sender })} type="send" className="w-8 h-8 text-white bg-inherit" />
+      </form>
+    </motion.div>
+  );
+}
+
+Message.propTypes = {
+  message: PropTypes.object,
+  toUser: PropTypes.bool,
+  messageIndex: PropTypes.number,
+};
+function Message({ message, toUser, messageIndex }) {
+  const sentDate = new Date(message.created_at);
+  return (
+    <motion.li
+      initial={{ opacity: 0, x: toUser ? 100 : -100 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.25, delay: messageIndex * 0.1 }}
+      className={` pl-2 py-1 w-fit rounded-md ${message.seen ? "bg-green-100" : "bg-blue-100"} ${toUser ? "ml-auto pr-2" : "pr-10"
+        }`}>
+      <p className={`break-all pt-1 font-medium ${toUser && "pl-1"}`}>{message.content}</p>
+      <p className={`mt-0.5 text-xs font-light ${toUser && "text-right"}`}>{sentDate.toLocaleString()}</p>
+    </motion.li>
+  );
+}
+
+export default Inbox;
