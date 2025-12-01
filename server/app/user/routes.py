@@ -1,7 +1,7 @@
 
 from flask import Blueprint, request, jsonify
 from app import db
-from app.users.models import (
+from app.user.models import (
     UserLoginValidator,
     UserRegisterValidator,
     User,
@@ -11,7 +11,6 @@ from bcrypt import hashpw, checkpw, gensalt
 from flask_login import login_user, logout_user, current_user, login_required
 
 user = Blueprint("users", __name__, url_prefix="/api")
-
 
 @user.route("/user/login", methods=["POST"])
 def user_login():

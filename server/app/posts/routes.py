@@ -1,14 +1,14 @@
 from flask import Blueprint, jsonify, request
-from reddis import db
+from app import db
 from flask_login import current_user, login_required
-from reddis.posts.models import (
+from app.posts.modelPost import (
     PostInfo,
     Posts,
     PostValidator,
     get_filters,
     SavedPosts,
 )
-from reddis.subthreads.models import Subscription, SubthreadInfo
+from app.subpost.models import Subscription, subpostInfo
 
 posts = Blueprint("posts", __name__, url_prefix="/api")
 
@@ -24,11 +24,11 @@ def get_posts(feed_name):
     except Exception:
         return jsonify({"message": "Invalid Request"}), 400
     if feed_name == "home" and current_user.is_authenticated:
-        threads = [subscription.subthread.id for subscription in Subscription.query.filter_by(user_id=current_user.id)]
+        threads = [subscription.subpost.id for subscription in Subscription.query.filter_by(user_id=current_user.id)]
     elif feed_name == "all":
-        threads = (thread.id for thread in SubthreadInfo.query.order_by(SubthreadInfo.members_count.desc()).limit(25))
+        threads = (thread.id for thread in subpostInfo.query.order_by(subpostInfo.members_count.desc()).limit(25))
     elif feed_name == "popular":
-        threads = (thread.id for thread in SubthreadInfo.query.order_by(SubthreadInfo.posts_count.desc()).limit(25))
+        threads = (thread.id for thread in subpostInfo.query.order_by(subpostInfo.posts_count.desc()).limit(25))
     else:
         return jsonify({"message": "Invalid Request"}), 400
     post_list = [
@@ -61,7 +61,7 @@ def new_post():
     form_data = request.form.to_dict()
     PostValidator().load(
         {
-            "subthread_id": form_data.get("subthread_id"),
+            "subpost_id": form_data.get("subpost_id"),
             "title": form_data.get("title"),
             "content": form_data.get("content"),
         }
@@ -77,7 +77,7 @@ def update_post(pid):
     form_data = request.form.to_dict()
     PostValidator().load(
         {
-            "subthread_id": form_data.get("subthread_id"),
+            "subpost_id": form_data.get("subpost_id"),
             "title": form_data.get("title"),
             "content": form_data.get("content"),
         }
@@ -110,8 +110,8 @@ def delete_post(pid):
         Posts.query.filter_by(id=pid).delete()
         db.session.commit()
         return jsonify({"message": "Post deleted"}), 200
-    current_user_mod_in = [r.subthread_id for r in current_user.user_role if r.role.slug == "mod"]
-    if post.subthread_id in current_user_mod_in:
+    current_user_mod_in = [r.subpost_id for r in current_user.user_role if r.role.slug == "mod"]
+    if post.subpost_id in current_user_mod_in:
         post.delete_media()
         Posts.query.filter_by(id=pid).delete()
         db.session.commit()
