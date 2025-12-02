@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import InfinitePosts from "../components/InfinitePosts";
+import InfinitePosts from "../../components/InfinitePosts";
 
 export default function SavedPosts() {
     useEffect(() => {

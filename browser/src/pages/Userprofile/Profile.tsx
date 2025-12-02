@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";                   // <-- real 
 import  useAuth from "../../components/AuthContext";               // <-- real auth consumer
 import Loader from "../../components/Loader";
 import InfinitePostsLayout from "../../components/InfinitePosts";
-import Modal from "../../components/Model";
+import Modal from "../../components/Modal";
 import { Chat } from "../inbox/Inbox";
 import UpdateUser from "../../components/UpdateUser";
 

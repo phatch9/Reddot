@@ -3,11 +3,11 @@ import axios from "axios";
 import { AnimatePresence } from "framer-motion";
 import { useState, FC } from "react";
 import { useParams } from "react-router-dom";
-import { useAuth, UserType } from "../../components/AuthContext";
+import  useAuth from "../../components/AuthContext";
 import Comment, { CommentMode, CommentDataType } from "../../components/Comment";
 import Loader from "../../components/Loader";
 // Post.tsx exports PostDataType and PostProps
-import Post, { PostDataType } from "../../components/Post";
+import Post, { PostDataType } from "../../components/PostCurrent";
 
 // Type Definition
 
@@ -21,7 +21,7 @@ interface FullPostParams extends Record<string, string> {
  * This is based on the provided query and component usage.
  */
 interface FullPostData {
-  post_info: PostDataType; // Using the type from Post.tsx
+  post_info: PostDataType; // Using the type from PostCurrent
   comment_info: CommentDataType[]; // Using the type from Comment.tsx
 }
 
