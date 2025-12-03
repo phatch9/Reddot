@@ -3,6 +3,7 @@ import Markdown from "markdown-to-jsx";
 import { FC, useRef, useState, ChangeEvent } from "react";
 import { Link } from "react-router-dom";;
 import useComment from "../hooks/useComment";
+import avatar from "../assets/avatar.png";
 import { timeAgo } from "../pages/Post/utils";
 import useAuth from "./../components/AuthContext";
 import Svg from "./Svg";
@@ -15,6 +16,14 @@ username: string;
 avatar?: string;
 mod_in: string[];
 roles: string[];
+}
+interface CommentDataType {
+comment: {
+    comment_info: CommentInfoType;
+    user_info: UserInfoType;
+    current_user: CurrentUserType;
+};
+children: CommentDataType[];
 }
 
 // From comment prop (inferred from usage)
@@ -32,7 +41,7 @@ user_name: string;
 }
 
 interface CurrentUserType {
-has_upvoted: boolean | null; // Based on Vote.tsx's VoteType
+has_upvoted: boolean | null; // on VoteType in Vote.tsx
 }
 
 // The structure of the main comment object
@@ -56,14 +65,14 @@ parentDelete?: ((commentId: number) => void) | null;
 
 // Return type of the useComment hook (inferred)
 interface UseCommentReturn {
-commentChildren: CommentDataType[];
-commentInfo: CommentInfoType;
-userInfo: UserInfoType;
-currentUser: CurrentUserType;
-addComment: (data: string) => void;
-deleteComment: (childId?: number) => void;
-updateComment: (data: string) => void;
-colorSquence: () => string;
+    commentChildren: CommentDataType[];
+    commentInfo: CommentInfoType;
+    userInfo: UserInfoType;
+    currentUser: CurrentUserType;
+    addComment: (data: string) => void;
+    deleteComment: (childId?: number) => void;
+    updateComment: (data: string) => void;
+    colorSquence: () => string;
 }
 
 // Props for the CommentMode component
@@ -124,24 +133,24 @@ document.body.removeChild(textArea);
 // Main Comment Component
 
 export const Comment: FC<CommentProps> = ({ children, comment, threadID, commentIndex, parentDelete = null }) => {
-const listRef = useRef<HTMLSelectElement>(null);
-const [isReply, setIsReply] = useState(false);
-const [editMode, setEditMode] = useState(false);
-const [expandChildren, setExpandChildren] = useState(true); // Default to expanded
+    const listRef = useRef<HTMLSelectElement>(null);
+    const [isReply, setIsReply] = useState(false);
+    const [editMode, setEditMode] = useState(false);
+    const [expandChildren, setExpandChildren] = useState(true); // Default to expanded
 
-// useComment returns typed data based on our inferred interface
-const {
-    commentChildren,
-    commentInfo,
-    userInfo,
-    currentUser,
-    addComment,
-    deleteComment,
-    updateComment,
-    colorSquence,
+    // useComment returns typed data based on our inferred interface
+    const  {
+        commentChildren,
+        commentInfo,
+        userInfo,
+        currentUser,
+        addComment,
+        deleteComment,
+        updateComment,
+        colorSquence,
 }: UseCommentReturn = useComment({
-    children,
-    comment,
+    children: children as CommentDataType[],
+    comment: comment as CommentDataType,
 });
 
 const { isAuthenticated, user } = useAuth(); // Replaced AuthConsumer
@@ -191,7 +200,7 @@ return (
     ) : (
         <>
         <div className="flex items-center space-x-2 text-sm font-medium">
-            <img loading="lazy" width="20" height="20" src={userInfo.user_avatar || avatar} alt="" className="object-cover w-5 h-5 rounded-full" />
+            <img loading="lazy" width="20" height="20" src={userInfo.user_avatar ? userInfo.user_avatar : avatar} alt="" className="object-cover w-5 h-5 rounded-full" />
             <Link to={`/u/${userInfo.user_name}`} className="font-medium text-blue-600 hover:underline">
             {userInfo.user_name}
             </Link>
@@ -272,15 +281,16 @@ return (
     <AnimatePresence mode="wait">
         {expandChildren && (
         <ul className={commentChildren.length > 0 && expandChildren ? "border-l-2 " + colorSquence() : ""}>
-            {commentChildren.map((child, index) => (
-            <Comment
-                key={child.comment.comment_info.id}
-                {...child}
-                commentIndex={index}
-                parentDelete={deleteComment}
-                threadID={threadID} // Pass threadID down
-            />
-            ))}
+                        {commentChildren.map((child, index) => (
+                            <Comment
+                                key={child.comment.comment_info.id}
+                                children={child.children as CommentDataType[]}
+                                comment={child as CommentDataType}
+                                commentIndex={index}
+                                parentDelete={deleteComment}
+                                threadID={threadID}
+                            />
+                        ))}
         </ul>
         )}
     </AnimatePresence>
@@ -305,7 +315,7 @@ return (
         defaultValue !== null ? "" : `border-l-2 ${colorSquence ? colorSquence() : 'border-gray-200'} py-3 pl-2 `
     }`}>
     <div className="flex items-center space-x-2 text-sm font-medium">
-        <img src={user.avatar || avatar} alt="" className="object-cover w-5 h-5 rounded-full" />
+        <img src={user.avatar ? user.avatar : avatar} alt="" className="object-cover w-5 h-5 rounded-full" />
         <Link to={`/u/${user.username}`}>{user.username}</Link>
     </div>
     <form
