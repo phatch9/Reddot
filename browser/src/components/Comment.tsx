@@ -12,15 +12,16 @@ import Vote from "./Vote";
 // Type Definitions
 // ----------------------
 // From AuthContext
+// From AuthContext
 interface UserType {
-  username: string;
-  avatar?: string;
-  mod_in: string[];
-  roles: string[];
+    username: string;
+    avatar?: string;
+    mod_in: string[];
+    roles: string[];
 }
 
 // The shape of the comment info used by this component
-interface CommentInfoType {
+interface CommentInfo {
     id: number;
     created_at: string; // ISO date string
     is_edited: boolean;
@@ -30,25 +31,25 @@ interface CommentInfoType {
 
 // The user info shape used by this component
 interface UserInfoType {
-    user_avatar?: string;
-    user_name: string;
-}
+    avatar?: string;
+    username: string;
+    }
 
 // The current user shape used by Vote
 interface CurrentUserType {
-  has_upvoted: boolean | null;
+    has_upvoted?: boolean;
 }
 
 // This is the recursive node shape used by the Comment tree in this component
-// (renamed to avoid colliding with other types)
 interface CommentNode {
-  comment: {
-    comment_info: CommentInfoType;
-    user_info: UserInfoType;
-    current_user: CurrentUserType;
-  };
-  children: CommentNode[];
+    comment: {
+        comment_info: CommentInfo;
+        user_info: UserInfoType;
+        current_user: CurrentUserType;
+    };
+    children: CommentNode[];
 }
+
 
 // Props for the main Comment component
 interface CommentProps {
@@ -115,10 +116,10 @@ function fallbackCopy(text: string) {
 
 // Main Comment Component
 export const Comment: FC<CommentProps> = ({ children, comment, threadID, commentIndex, parentDelete = null }) => {
-  const listRef = useRef<HTMLSelectElement>(null);
-  const [isReply, setIsReply] = useState(false);
-  const [editMode, setEditMode] = useState(false);
-  const [expandChildren, setExpandChildren] = useState(true); // Default to expanded
+    const listRef = useRef<HTMLSelectElement>(null);
+    const [isReply, setIsReply] = useState(false);
+    const [editMode, setEditMode] = useState(false);
+    const [expandChildren, setExpandChildren] = useState(true); // Default to expanded
 
   // Let TypeScript infer the return type from useComment to avoid mismatch with hook internals.
   // Casting the inputs to `any[]`/`any` is done here only to satisfy `useComment`'s own input expectations,
@@ -144,9 +145,9 @@ export const Comment: FC<CommentProps> = ({ children, comment, threadID, comment
     switch (value) {
       case "delete":
         if (parentDelete) {
-          parentDelete(commentInfo.id);
+          parentDelete(commentInfo.id as number);
         } else {
-          deleteComment();
+          deleteComment(commentInfo.id as number);
         }
         if (listRef.current) listRef.current.value = "more";
         break;
@@ -160,7 +161,7 @@ export const Comment: FC<CommentProps> = ({ children, comment, threadID, comment
     }
   }
 
-  return (
+    return (
     <motion.li
         className={`py-3 pl-2 space-y-2 w-full bg-white rounded-xl md:text-base ${!parentDelete && "border"}`}
         initial={{ opacity: 0, y: -10 }}
@@ -175,26 +176,26 @@ export const Comment: FC<CommentProps> = ({ children, comment, threadID, comment
                 setEditMode(false);
                 if (listRef.current) listRef.current.value = "more";
             }}
-          callBackCancel={() => {
+        callBackCancel={() => {
             setEditMode(false);
             if (listRef.current) listRef.current.value = "more";
-          }}
-          defaultValue={commentInfo.content}
-          user={user as UserType}
+            }}
+            defaultValue={commentInfo.content}
+            user={user as UserType}
         />
       ) : (
         <>
-          <div className="flex items-center space-x-2 text-sm font-medium">
+            <div className="flex items-center space-x-2 text-sm font-medium">
             <img
                 loading="lazy"
                 width="20"
                 height="20"
-                src={userInfo.user_avatar ? userInfo.user_avatar : avatar}
+                // src={userInfo.user_avatar ? userInfo.user_avatar : avatar}
                 alt=""
                 className="object-cover w-5 h-5 rounded-full"
             />
-            <Link to={`/u/${userInfo.user_name}`} className="font-medium text-blue-600 hover:underline">
-              {userInfo.user_name}
+            <Link to={`/u/${userInfo.username}`} className="font-medium text-blue-600 hover:underline">
+                {userInfo.username}
             </Link>
             <p>{timePassed}</p>
             {commentInfo.is_edited && <p>(Edited)</p>}
@@ -205,8 +206,8 @@ export const Comment: FC<CommentProps> = ({ children, comment, threadID, comment
         </>
       )}
       <div className="flex justify-around items-center md:justify-between md:mx-10">
-        {isAuthenticated && user && (user.username === userInfo.user_name || user.mod_in.includes(threadID) || user.roles.includes("admin")) ? (
-          <select
+        {isAuthenticated && user && (user.username === userInfo.username || user.mod_in.includes(threadID) || user.roles.includes("admin")) ? (
+        <select
             defaultValue={"more"}
             ref={listRef}
             name="more-options"
@@ -214,25 +215,25 @@ export const Comment: FC<CommentProps> = ({ children, comment, threadID, comment
             id="more-options"
             className="text-sm bg-white md:px-2 md:text-base"
             onChange={(e: ChangeEvent<HTMLSelectElement>) => handleSelect(e.target.value)}
-          >
+            >
             <option value="more">More</option>
             <option value="share">Share</option>
-            {user.username === userInfo.user_name && <option value="edit">Edit</option>}
+            {user.username === userInfo.username && <option value="edit">Edit</option>}
             <option value="delete">Delete</option>
           </select>
         ) : (
-          <div className="flex items-center space-x-1 cursor-pointer" onClick={() => copyToClipboard(window.location.href)}>
+        <div className="flex items-center space-x-1 cursor-pointer" onClick={() => copyToClipboard(window.location.href)}>
             <Svg type="share" className="w-4 h-4" />
             <p className="text-sm md:text-base">Share</p>
-          </div>
+        </div>
         )}
         <div
-          className="flex items-center space-x-1 cursor-pointer"
-          onClick={() => {
+            className="flex items-center space-x-1 cursor-pointer"
+            onClick={() => {
             if (!isAuthenticated) {
-              console.error("User must be logged in to reply.");
+                console.error("User must be logged in to reply.");
             } else {
-              setIsReply(!isReply);
+                setIsReply(!isReply);
             }
           }}
         >
@@ -251,7 +252,7 @@ export const Comment: FC<CommentProps> = ({ children, comment, threadID, comment
             url="/api/reactions/comment"
             initialVote={currentUser?.has_upvoted}
             initialCount={commentInfo.comment_karma}
-            contentID={commentInfo.id}
+            contentID={commentInfo.id as number}
             type="mobile"
           />
         </div>
@@ -274,33 +275,33 @@ export const Comment: FC<CommentProps> = ({ children, comment, threadID, comment
         />
       )}
 
-      <AnimatePresence mode="wait">
+     <AnimatePresence mode="wait">
         {expandChildren && (
-          <ul className={commentChildren.length > 0 && expandChildren ? "border-l-2 " + colorSquence() : ""}>
+            <ul className={commentChildren.length > 0 && expandChildren ? "border-l-2 " + colorSquence() : ""}>
             {commentChildren.map((child: any, index: number) => (
-              <Comment
+                <Comment
                 key={child.comment.comment_info.id}
                 children={child.children as CommentNode[]}
                 comment={child as CommentNode}
                 commentIndex={index}
                 parentDelete={deleteComment}
                 threadID={threadID}
-              />
+                />
             ))}
-          </ul>
-        )}
-      </AnimatePresence>
+            </ul>
+            )}
+        </AnimatePresence>
     </motion.li>
-  );
+    );
 };
 
 // Comment Input Component
 export const CommentMode: FC<CommentModeProps> = ({ user, colorSquence, callBackSubmit, callBackCancel, defaultValue = null }) => {
-  const { isAuthenticated } = useAuth();
-  const [preMD, setPreMD] = useState(false);
-  const [content, setContent] = useState(defaultValue || "");
+    const { isAuthenticated } = useAuth();
+    const [preMD, setPreMD] = useState(false);
+    const [content, setContent] = useState(defaultValue || "");
 
-  return (
+    return (
     <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -318,9 +319,9 @@ export const CommentMode: FC<CommentModeProps> = ({ user, colorSquence, callBack
         method="post"
         className="flex flex-col space-y-2"
         onSubmit={(e) => {
-          e.preventDefault();
-          if (isAuthenticated) {
-            callBackSubmit(content);
+            e.preventDefault();
+            if (isAuthenticated) {
+                callBackSubmit(content);
           } else {
             console.error("User must be logged in to share the comment.");
           }
@@ -341,15 +342,15 @@ export const CommentMode: FC<CommentModeProps> = ({ user, colorSquence, callBack
         <div className="flex self-end space-x-2">
           <button type="submit" className="px-2 py-1 font-bold text-white bg-blue-600 rounded-md md:px-5 active:scale-95">
             Submit
-          </button>
-          <button
+            </button>
+            <button
             onClick={() => setPreMD(!preMD)}
             type="button"
             className="px-2 py-1 font-bold text-white bg-green-600 rounded-md md:px-5 active:scale-95"
           >
             {preMD ? "Close Preview" : "Preview"}
-          </button>
-          <button
+        </button>
+        <button
             onClick={() => callBackCancel()}
             type="button"
             className="px-2 py-1 font-bold text-white bg-red-600 rounded-md md:px-5 active:scale-95"

@@ -13,20 +13,22 @@ post_id?: string | number;
 parent_id: string | number | null;
 has_parent: boolean;
 is_edited: boolean;
+created_at: string;
+comment_karma: number;
+contentID?: number;
 };
 
 /** user made the comment */
 type UserInfo = {
 id: string | number;
 username: string;
-// Add any other expected user fields
 };
 
 /** current authenticated user. */
 type CurrentUser = {
 id: string | number;
 username: string;
-
+has_upvoted?: boolean;
 };
 
 /** The structure of the primary comment object passed via props/state. */
@@ -60,7 +62,6 @@ comment_info: ChildCommentWrapper[];
 };
 
 // Constants and Globals
-
 const borderColors: string[] = [
 "border-yellow-400",
 "border-blue-400",
