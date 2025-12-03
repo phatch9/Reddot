@@ -49,7 +49,7 @@ const duration = searchParams.get("duration") || "alltime";
 const { data, isFetching, hasNextPage, fetchNextPage } = useInfiniteQuery<
         PageData,
         Error,
-        InfiniteData<PageData>,
+        InfiniteData<PageData>, // Use InfiniteData wrapper
         [string, string, string, string],
         number >({ // Page parameter type
         
@@ -57,7 +57,7 @@ const { data, isFetching, hasNextPage, fetchNextPage } = useInfiniteQuery<
         queryFn: async ({ pageParam = 0 }) => {
             const offset = pageParam * 20; // 20 posts per page
             const apiUrl = `/api/${linkUrl}?limit=20&offset=${offset}&sortby=${sortBy}&duration=${duration}`;
-            const response = await axios.get(apiUrl);
+            const response = await axios.get<PageData>(apiUrl);
             return response.data;
         },
         enabled: enabled,
