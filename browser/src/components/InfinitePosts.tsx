@@ -1,9 +1,9 @@
 import { useInfiniteQuery, InfiniteData } from "@tanstack/react-query";
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
 import { AnimatePresence, motion } from "framer-motion";
 import { FC, useEffect, ChangeEvent, UIEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import Post from "./Post";
+import Post from "./PostCurrent";
 import Loader from "./Loader";
 
 // Type Definitions
@@ -31,7 +31,6 @@ enabled?: boolean;
 }
 
 // Component Implementation
-
 /**
  * A layout component that fetches and displays posts using infinite scrolling.
  * It also includes options for sorting and filtering posts by duration.
@@ -48,30 +47,26 @@ const sortBy = searchParams.get("sortBy") || "top";
 const duration = searchParams.get("duration") || "alltime";
 
 const { data, isFetching, hasNextPage, fetchNextPage } = useInfiniteQuery<
-    PageData,
-    Error,
-    InfiniteData<PageData>,
-    [string, string, string, string],
-    number // Page parameter type
->({
-    queryKey: ["posts", apiQueryKey, sortBy, duration],
-    queryFn: async ({ pageParam = 0 }) => {
-    const offset = pageParam * 20; // 20 posts per page
-    const apiUrl = `/api/${linkUrl}?limit=20&offset=${offset}&sortby=${sortBy}&duration=${duration}`;
-    
-    const response: AxiosResponse<PageData> = await axios.get(apiUrl);
-    return response.data;
-    },
-    enabled: enabled,
-    // The previous page parameter is the PageData array, the pages array is the full array of page arrays.
-    getNextPageParam: (lastPage, pages) => {
-    // If the last page returned less than 20 items, we assume there are no more pages.
-    if (lastPage.length < 20) return undefined;
-    // Otherwise, the next pageParam will be the current number of pages (0-indexed).
-    return pages.length; 
-    },
-    // Keep data fresh for a shorter duration when sorting parameters change
-    staleTime: 5 * 60 * 1000, 
+        PageData,
+        Error,
+        InfiniteData<PageData>,
+        [string, string, string, string],
+        number >({ // Page parameter type
+        
+        queryKey: ["posts", apiQueryKey, sortBy, duration],
+        queryFn: async ({ pageParam = 0 }) => {
+            const offset = pageParam * 20; // 20 posts per page
+            const apiUrl = `/api/${linkUrl}?limit=20&offset=${offset}&sortby=${sortBy}&duration=${duration}`;
+            const response = await axios.get(apiUrl);
+            return response.data;
+        },
+        enabled: enabled,
+        getNextPageParam: (lastPage, pages) => {
+            if (lastPage.length < 20) return undefined;
+            return pages.length;
+        },
+        staleTime: 5 * 60 * 1000,
+        initialPageParam: 0,
 });
 
 // --- Infinite Scrolling Logic ---
