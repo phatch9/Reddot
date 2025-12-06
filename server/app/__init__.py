@@ -53,14 +53,14 @@ def not_found(e):
 
 # noqa
 from app.user.routes import user
-from app.subpost.routes import threads
+from app.subpost.routes import subposts
 from app.posts.routes import posts
 from app.comments.routes import comments
-from app.reaction.routes import reactions
+from app.reactions.routes import reactions
 from app.messages.routes import messages
 
 app.register_blueprint(user)
-app.register_blueprint(threads)
+app.register_blueprint(subposts)
 app.register_blueprint(posts)
 app.register_blueprint(comments)
 app.register_blueprint(reactions)
