@@ -5,10 +5,10 @@ from flask import url_for
 from datetime import datetime, timedelta
 import cloudinary.uploader as uploader
 from werkzeug.utils import secure_filename
-from app.subpost.models import subpost
+from app.subpost.models import Subpost
 from flask_marshmallow.fields import fields
 from marshmallow.exceptions import ValidationError
-from app.reaction.models import Reactions
+from app.reactions.models import Reactions
 
 
 class Posts(db.Model):
@@ -22,7 +22,7 @@ class Posts(db.Model):
     content = db.Column(db.Text)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=db.func.now())
     user = db.relationship("User", back_populates="post")
-    subpost = db.relationship("subpost", back_populates="post")
+    subposts = db.relationship("Subpost", back_populates="post")
     post_info = db.relationship("PostInfo", back_populates="post")
     reaction = db.relationship("Reactions", back_populates="post")
     comment = db.relationship("Comments", back_populates="post")
@@ -132,7 +132,7 @@ class PostInfo(db.Model):
     post_karma = db.Column(db.Integer)
     comments_count = db.Column(db.Integer)
     post = db.relationship("Posts", back_populates="post_info")
-    subpost = db.relationship("subpost", back_populates="post_info")
+    subpost = db.relationship("Subpost", back_populates="post_info")
     user = db.relationship("User", back_populates="post_info")
 
     def as_dict(self, cur_user=None):
@@ -167,8 +167,8 @@ class PostInfo(db.Model):
 
 
 def doessubpostExist(subpost_id):
-    if not subpost.query.filter_by(id=subpost_id).first():
-        raise ValidationError("subpost does not exist")
+    if not Subpost.query.filter_by(id=subpost_id).first():
+        raise ValidationError("this subpost does not exist")
 
 
 class PostValidator(ma.SQLAlchemySchema):
