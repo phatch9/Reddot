@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { AxiosError } from 'axios'; // We assume Axios is installed and its types are available
+import { AxiosError } from 'axios'; // assume Axios is installed and its types are available
 import Loader from "../../components/Loader";
 import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../../components/AuthContext";
@@ -7,27 +7,27 @@ import { AppLogo } from "../../components/Navbar";
 import Svg from "../../components/Svg";
 
 // Mock Types for useMutation
-// Define the expected successful data structure from the API (Same as login)
+// Define the expected successful data structure from the API (Same as Login)
 interface AuthResponseData {
     token: string;
     userId: string;
     // Add any other user properties returned by the API
 }
 
-// Define the expected error structure for validation errors (specific to Register)
+// Define the expected error structure for validation errors (specific to Sign Up)
 interface ValidationError {
     username?: string[]; // Array of error messages for this field
     email?: string[];
     password?: string[];
 }
 
-interface RegisterErrorBody {
+interface SignupErrorBody {
     message?: string; // For general errors (like server failure)
     errors: ValidationError; // For validation errors
 }
 
-// Mock AxiosError specific to our register error structure
-type RegisterError = AxiosError<RegisterErrorBody>;
+// Mock AxiosError specific to our Signup error structure
+type SignupError = AxiosError<SignupErrorBody>;
 
 interface MutationResult<TData, TError> {
     mutate: () => void;
@@ -78,8 +78,8 @@ export function Signup() {
     const { isAuthenticated, login } = useAuth();
     const navigate = useNavigate();
 
-    // useMutation Typing: Using RegisterError for validation handling
-    const { mutate, status, error } = useMutation<AuthResponseData, RegisterError>({
+    // useMutation Typing: Using SignUp Error for validation handling
+    const { mutate, status, error } = useMutation<AuthResponseData, SignupError>({
         // The mutation function must be an async function that returns a Promise<AuthResponseData>
         mutationFn: async () => {
             console.log(`Mock API call: Signing up user ${username}...`);
@@ -87,7 +87,7 @@ export function Signup() {
             // Mocking the axios call and error structure for Sign up
             if (username === "fail") {
                  // Simulate validation errors
-                 throw {
+                throw {
                     response: {
                         data: {
                             errors: {
@@ -96,22 +96,22 @@ export function Signup() {
                             }
                         }
                     }
-                 } as RegisterError;
+                } as SignupError;
             } else if (username && email && password) {
                 const responseData: AuthResponseData = { token: "fake-jwt", userId: "user-456" };
                 return responseData; // Success data
             }
             // Fallback error
-            throw { response: { data: { message: "Internal server error." } } } as RegisterError;
+            throw { response: { data: { message: "Internal server error." } } } as SignupError;
             // End Mock Logic
         },
         onSuccess: () => navigate("/home"),
     });
 
     useEffect(() => {
-        document.title = "Threaddit | Signup";
+        document.title = "Reddot | Signup";
         return () => {
-            document.title = "Threaddit";
+            document.title = "Reddot";
         }
     }, []);
 

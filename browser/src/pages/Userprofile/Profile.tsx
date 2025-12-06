@@ -72,7 +72,7 @@ export function Profile() {
 
     useEffect(() => {
         document.title = "u/" + username;
-        return () => { document.title = "Threaddit"; };
+        return () => { document.title = "Reddot"; };
     }, [username]);
 
     const handleAccountDelete = useCallback(() => {
