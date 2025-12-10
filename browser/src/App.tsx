@@ -1,33 +1,85 @@
-import React from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './components/AuthContext';
+// App.tsx
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { Suspense, lazy } from "react";
+import {
+  Navigate,
+  RouterProvider,
+  createBrowserRouter,
+  Outlet,
+} from "react-router-dom";
 
-// Minimal, stable app shell used for local dev and route sanity checks.
+import AppLayout from "./components/MainLayout";
+import { AuthProvider } from "./components/AuthContext";
+import Error from "./components/Error";
+import Loader from "./components/Loader";
+import RequireAuth from "./components/Route";
+import Login from "./pages/Signin/Login";
+import Signup from "./pages/Signup/Signup";
+
+// Lazy-loaded pages (TSX)
+const Feed = lazy(() => import("./pages/newfeed/Newfeed"));
+const Profile = lazy(() => import("./pages/UserProfile/Profile"));
+const FullPost = lazy(() => import("./pages/Post/FullPost"));
+const Inbox = lazy(() => import("./pages/Inbox/Inbox"));
+const SavedPosts = lazy(() => import("./pages/Saved/SavedPost"));
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <AppLayout />,
+    errorElement: <Error />,
+    children: [
+      {
+        path: "/",
+        element: <Outlet />,
+        children: [
+          { path: "/", element: <Navigate to="/all" /> },
+          { path: "/:feedName", element: <Feed /> },
+          { path: "/post/:postId", element: <FullPost /> },
+        ],
+      },
+      { path: "/u/:username", element: <Profile /> },
+      // Thread route removed: component not present. Add back when implemented.
+      {
+        path: "/saved",
+        element: (
+          <RequireAuth>
+            <SavedPosts />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: "/inbox",
+        element: (
+          <RequireAuth>
+            <Inbox />
+          </RequireAuth>
+        ),
+      },
+    ],
+  },
+  { path: "/login", element: <Login /> },
+  { path: "/signup", element: <Signup /> },
+]);
+
+// React Query client configuration
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { staleTime: 1000 * 60 * 2 },
+    queries: {
+      staleTime: 120000, // 2 minutes
+    },
   },
 });
 
-const Feed: React.FC = () => <div className="p-6">Main Feed (placeholder)</div>;
-const Profile: React.FC = () => <div className="p-6">Profile (placeholder)</div>;
-const Login: React.FC = () => <div className="p-6">Login (placeholder)</div>;
-const Signup: React.FC = () => <div className="p-6">Sign Up (placeholder)</div>;
-
-export function App(): JSX.Element {
+export function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <ReactQueryDevtools initialIsOpen={false} />
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Navigate to="/all" replace />} />
-            <Route path="/all" element={<Feed />} />
-            <Route path="/u/:username" element={<Profile />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-          </Routes>
-        </BrowserRouter>
+        <Suspense fallback={<Loader />}>
+          <RouterProvider router={router} fallbackElement={<Loader />} />
+        </Suspense>
       </AuthProvider>
     </QueryClientProvider>
   );
