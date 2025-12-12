@@ -53,8 +53,8 @@ export const AppLogo: FC<AppLogoProps> = ({ forBanner = false, children }) => {
                     className="hidden md:block absolute w-4 h-4
                                 bg-theme-orange rounded-full bottom-[5.9rem] z-20 right-[8rem] group-hover:animate-bounce"></span>
                 <span className="hidden md:block absolute w-4 h-4 bg-theme-cultured rounded-full bottom-[5.9rem] z-10 right-[8rem]"></span>
-                <h1 className="font-mono text-6xl font-bold tracking-tight">readdit</h1>
-                <p className="text-lg font-semibold">The Internet Home Place, where many communities reside</p>
+                <h1 className="font-mono text-6xl font-bold tracking-tight">NexPost</h1>
+                <p className="text-lg font-semibold">Sharing Vibes With The Best Online Home Place</p>
                 {children}
             </div>
         );
@@ -66,13 +66,13 @@ export const AppLogo: FC<AppLogoProps> = ({ forBanner = false, children }) => {
                 className="hidden md:block absolute w-2 h-2 bg-theme-orange rounded-full
                             right-[1.4rem] top-[0.2rem] z-20 group-hover:animate-bounce"></span>
             <span className="hidden md:block absolute w-2 h-2 bg-white rounded-full right-[1.4rem] top-[0.2rem] z-10"></span>
-            <h1 className="hidden font-mono text-3xl font-bold tracking-tight md:block">readdit</h1>
+            <h1 className="hidden font-mono text-3xl font-bold tracking-tight md:block">NexPost</h1>
             {children}
         </Link>
     );
 }
 
-// ReadSearch Component
+// PostSearch Component
 
 export const ReadSearch: FC<ReadSearchProps> = ({ callBackFunc, forPost = false }) => {
     const searchRef = useRef<HTMLDivElement>(null);
