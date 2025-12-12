@@ -6,7 +6,7 @@ import uvicorn
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="Reddot API",
+    title="NexPost API",
     description="A Reddit clone API built with FastAPI",
     version="0.1.0"
 )
@@ -26,7 +26,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 # Root endpoint
 @app.get("/")
 async def root():
-    return {"message": "Welcome to Reddot API"}
+    return {"message": "Welcome to NexPost API"}
 
 # Health check endpoint
 @app.get("/health")
