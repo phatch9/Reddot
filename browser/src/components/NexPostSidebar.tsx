@@ -6,7 +6,7 @@ import { FC } from "react";
 // Type Definitions
 
 /** Defines the structure of a single thread item */
-interface Reddot {
+interface NexPost {
     id: string;
     name: string;
     logo?: string; // logo will be optional
@@ -14,15 +14,15 @@ interface Reddot {
 }
 
 /** Defines the structure of the data returned by the API */
-interface ReddotData {
-    subscribed: Reddot[];
-    all: Reddot[];
-    popular: Reddot[];
+interface NexPostData {
+    subscribed: NexPost[];
+    all: NexPost[];
+    popular: NexPost[];
 }
 
 /** Props for the SideBarComponent */
 interface SideBarComponentProps {
-    threadList?: Reddot[];
+    threadList?: NexPost[];
 }
 
 // SideBarComponent Implementation
@@ -34,7 +34,7 @@ interface SideBarComponentProps {
 const SideBarComponent: FC<SideBarComponentProps> = ({ threadList }) => {
     return (
         <div className="flex flex-col space-y-4 w-48 list-none">
-            {/* threadList is now an array of Reddot objects */}
+            {/* threadList is now an array of NexPost objects */}
             {threadList?.slice(0, 10).map((thread) => (
                 <Link
                     to={`/${thread.name}`}
@@ -71,13 +71,13 @@ const SideBarComponent: FC<SideBarComponentProps> = ({ threadList }) => {
  * The main sidebar component displaying subscribed, top, and popular threads.
  * Uses useQuery for data fetching.
  */
-export function ReddotSidebar() {
+export function NexPostSidebar() {
     // Use the RedditData interface for the useQuery response
-    const { data, isLoading, isError } = useQuery<ReddotData>({
+    const { data, isLoading, isError } = useQuery<NexPostData>({
     queryKey: ["threads/all"],
-    queryFn: async (): Promise<ReddotData> => {
+    queryFn: async (): Promise<NexPostData> => {
         await new Promise(resolve => setTimeout(resolve, 500));
-        const res = await axios.get<ReddotData>("/api/threads");
+        const res = await axios.get<NexPostData>("/api/threads");
         return res.data;
     },
     retry: 2,
@@ -141,4 +141,4 @@ export function ReddotSidebar() {
     );
 }
 
-export default ReddotSidebar;
+export default NexPostSidebar;
