@@ -40,7 +40,7 @@ const router = createBrowserRouter([
         ],
       },
       { path: "/u/:username", element: <Profile /> },
-      // Thread route removed: component not present. Add back when implemented.
+      // Route removed: component not present. Add back when implemented.
       {
         path: "/saved",
         element: (
