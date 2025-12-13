@@ -6,7 +6,7 @@ import AuthConsumer from "../../components/AuthContext";
 import Loader from "../../components/Loader";
 import Svg from "../../components/Svg";
 
-// ---- TYPES -------//
+// TYPES //
 
 interface LoginResponse {
   token: string;
@@ -17,7 +17,7 @@ interface LoginErrorResponse {
   message: string;
 }
 
-// ---COMPONENT ----- //
+// COMPONENT  //
 
 export function Login() {
   const [showPass, setShowPass] = useState<boolean>(false);
@@ -42,9 +42,9 @@ export function Login() {
   });
 
   useEffect(() => {
-    document.title = "Reddot | Login";
+    document.title = "NexPost | Login";
     return () => {
-      document.title = "Reddot";
+      document.title = "NexPost";
     };
   }, []);
 

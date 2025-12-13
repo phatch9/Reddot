@@ -8,7 +8,7 @@ import  useAuth from "../../components/AuthContext";               // <-- real a
 import Loader from "../../components/Loader";
 import InfinitePostsLayout from "../../components/InfinitePosts";
 import Modal from "../../components/Modal";
-import { Chat } from "../inbox/Inbox";
+import { Chat } from "../Inbox/Inbox";
 import UpdateUser from "../../components/UpdateUser";
 
 // Types and Interfaces
@@ -72,7 +72,7 @@ export function Profile() {
 
     useEffect(() => {
         document.title = "u/" + username;
-        return () => { document.title = "Reddot"; };
+        return () => { document.title = "NexPost"; };
     }, [username]);
 
     const handleAccountDelete = useCallback(() => {

@@ -109,9 +109,9 @@ export function Signup() {
     });
 
     useEffect(() => {
-        document.title = "Reddot | Signup";
+        document.title = "NexPost | Signup";
         return () => {
-            document.title = "Reddot";
+            document.title = "NexPost";
         }
     }, []);
 
@@ -143,12 +143,12 @@ export function Signup() {
     return (
         <div className="flex justify-center items-center min-h-screen md:space-x-10 bg-gray-50 font-inter">
             <AppLogo forBanner={true}>
-                <h1 className="hidden font-mono text-4xl font-bold tracking-tight text-gray-800 md:block">Threaddit</h1>
+                <h1 className="hidden font-mono text-4xl font-bold tracking-tight text-gray-800 md:block">(Logo)</h1>
             </AppLogo>
             <div className="flex flex-col p-8 py-10 space-y-8 bg-white rounded-xl shadow-2xl w-full max-w-sm">
                 <div className="flex justify-center md:hidden">
                     <AppLogo>
-                        <h1 className="font-mono text-3xl font-bold tracking-tight text-gray-800">Threaddit</h1>
+                        <h1 className="font-mono text-3xl font-bold tracking-tight text-gray-800">NexPost</h1>
                     </AppLogo>
                 </div>
                 <h1
@@ -156,7 +156,7 @@ export function Signup() {
                         ${(error && Object.keys(error.response?.data?.errors || {}).length > 0) ? "font-extrabold uppercase text-red-600" : "font-semibold text-gray-700"}`}
                 >
                     {/* Display general error message if no validation errors, otherwise default welcome */}
-                    {status === "loading" ? <Loader forPosts={true} /> : "Join Threaddit Today!"}
+                    {status === "loading" ? <Loader forPosts={true} /> : "Build Communities With Us!"}
                 </h1>
                 <form
                     className="flex flex-col items-center space-y-6 bg-white"
